@@ -31,6 +31,53 @@ START_BYTE = '<' #nie zmieniac
 STOP_BYTE = '>' #nie zmieniac
 
 RX_FRAMES_FILTER = (0x5F,)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #########################################################
 #      warstwa komunikacyjna - ramki na magistrali
 
