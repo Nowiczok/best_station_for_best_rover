@@ -419,6 +419,12 @@ class Uart:
     def ScienceGetAtmosphereRequest(self, id):
         self._generate(0xA2, [id, ])
 
+    def CustomToUart(self, args=[]):
+        self._generate(0x80, args)
+
+    def CustomToRf(self, args=[]):
+        self._generate(0x81, args)
+
     # na potrzeby testow, niespecjalnie istotne
 
     def pidrequest(self, s):
@@ -616,3 +622,8 @@ class Uart:
         rx_running = False
         self.port.close()
         logfile.close()
+
+    def extend_rx_filter(ids):
+        filters_to_add = [i for i in ids if i not in Uart.RX_FRAMES_FILTER]
+        new_filters = [i for i in Uart.RX_FRAMES_FILTER] + filters_to_add
+        Uart.RX_FRAMES_FILTER = tuple(new_filters)
