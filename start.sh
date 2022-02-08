@@ -7,4 +7,4 @@ sudo socat -d -d tcp:192.168.1.45:8899 pty,link=virtualcom0 &
 
 sudo python main.py --port virtualcom0
 
-killall socat
+sudo killall socat

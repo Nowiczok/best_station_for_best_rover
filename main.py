@@ -12,10 +12,8 @@ import subprocess
 import atexit
 
 
-
 def main():
     fancy_menu = False
-
 
     def serial_ports():
         """ Lists serial port names
@@ -46,24 +44,22 @@ def main():
                 pass
         return result
 
-    def show_menu(title,options):
+    def show_menu(title, options):
         if fancy_menu:
             terminal_menu = TerminalMenu(
                 options, title=title, clear_screen=True)
             menu_entry_index = terminal_menu.show()
             return menu_entry_index
         else:
-            menu = SelectionMenu(options,title)
+            menu = SelectionMenu(options, title)
             menu.show()
             menu.join()
             return menu.selected_option
 
-            
     parser = argparse.ArgumentParser(description='Cli Kalman operation software.')
     parser.add_argument('--port', help='Specify port')
 
     args = parser.parse_args()
-
 
     if (platform == "linux" or platform == "linux2"):
         if(os.geteuid() != 0):
@@ -89,14 +85,14 @@ def main():
     else:
         while True:
             options = ["Wyszukaj dostępne porty", "Połącz manualnie"]+['Wyjdź']
-            
-            menu_entry_index = show_menu(title,options)
+
+            menu_entry_index = show_menu(title, options)
             # print(f"You have selected {options[menu_entry_index]}!")
             if(menu_entry_index == 0):
                 # print(serial_ports())
                 ports = serial_ports()
                 options = ports+['Wyjdź']
-                menu_entry_index = show_menu(title,options)
+                menu_entry_index = show_menu(title, options)
                 if(menu_entry_index != len(ports)):
                     port = ports[menu_entry_index]
                     break
@@ -106,23 +102,98 @@ def main():
             else:
                 sys.exit()
 
-
     uart = Uart(PORTNAME=port, PRINT_TX=False, PRINT_RX=False)
 
     uart.start()
     atexit.register(uart.stop)
     title = "[ {} ]".format(port)
 
-
     starttime = time.time()
     maxspeed = 30
     maxturn = 30
 
-
     while True:
         options = ["AutoTest", "Manualna Jazda", "Test Manipulatora"]+['Wyjdź']
-        menu_entry_index = show_menu(title,options)
-        if(menu_entry_index == 1):
+        menu_entry_index = show_menu(title, options)
+        if(menu_entry_index == 0):
+            keep_running = True
+            action_length = 60
+            maxspeed = 30
+            maxturn = 60
+            while(keep_running):
+                for i in range(action_length):
+                    dir = 1 if i >= action_length/2 else -1
+                    uart.MotorSetWheels2(0, maxturn*dir)
+                    if keyboard.is_pressed("="):
+                        action_length += 10
+                    if (platform == "win32"):
+                        if keyboard.is_pressed("-"):
+                            action_length -= 10
+                    else:
+                        if keyboard.is_pressed("minus"):
+                            action_length -= 10
+                    if keyboard.is_pressed("]"):
+                        maxturn += 10
+                    if keyboard.is_pressed("["):
+                        maxturn -= 10
+                    if keyboard.is_pressed("enter") or keyboard.is_pressed("space"):
+                        keep_running = False
+                        break
+                    if keyboard.is_pressed("escape"):
+                        keep_running = False
+                        break
+
+                    action_length = max(action_length, 10)
+                    maxturn = min(90, max(maxturn, 0))
+                    print("SKRETY")
+                    print("Dostępne klawisze: esc spacja/enter - + [ ]")
+                    print("Last packet: [{:.1f}]".format(
+                        time.time() - uart.last_rx_time))
+                    print("[{:4d}][{:4d}]".format(action_length, maxturn))
+                    time.sleep(0.1 - ((time.time() - starttime) % 0.1))
+                    clear()
+
+            uart.MotorSetWheels2(0, 0)
+            time.sleep(2)
+
+            keep_running = True
+            action_length = 40
+
+            while(keep_running):
+                for i in range(action_length):
+                    dir = 1 if i < action_length/4 else -1 if 2*action_length/4 <= i < 3*action_length/4 else 0
+                    uart.MotorSetWheels2(maxspeed*dir, 0)
+                    if keyboard.is_pressed("="):
+                        action_length += 10
+                    if (platform == "win32"):
+                        if keyboard.is_pressed("-"):
+                            action_length -= 10
+                    else:
+                        if keyboard.is_pressed("minus"):
+                            action_length -= 10
+                    if keyboard.is_pressed("]"):
+                        maxspeed += 10
+                    if keyboard.is_pressed("["):
+                        maxspeed -= 10
+                    if keyboard.is_pressed("enter") or keyboard.is_pressed("space"):
+                        keep_running = False
+                        break
+                    if keyboard.is_pressed("escape"):
+                        keep_running = False
+                        break
+
+                    action_length = max(action_length, 10)
+                    maxturn = min(100, max(maxspeed, 0))
+
+                    print("NAPEDY")
+                    print("Dostępne klawisze: esc spacja/enter - + [ ]")
+                    print("Last packet: [{:.1f}]".format(
+                        time.time() - uart.last_rx_time))
+                    print("[{:4d}][{:4d}]".format(action_length, maxturn))
+                    time.sleep(0.1 - ((time.time() - starttime) % 0.1))
+                    clear()
+
+        elif(menu_entry_index == 1):
             keep_running = True
             while(keep_running):
                 speed = 0
@@ -135,17 +206,26 @@ def main():
                     turn = maxturn
                 if keyboard.is_pressed("left"):
                     turn = -maxturn
-                if keyboard.is_pressed("="): # +
+                if keyboard.is_pressed("="):  # +
                     maxspeed += 5
-                if keyboard.is_pressed("-"): # -
-                    maxspeed -= 5
+                if (platform == "win32"):
+                    if keyboard.is_pressed("-"):
+                        maxspeed -= 5
+                else:
+                    if keyboard.is_pressed("minus"):
+                        maxspeed -= 5
                 if keyboard.is_pressed("]"):
-                    maxturn += 5
+                    maxturn += 10
                 if keyboard.is_pressed("["):
-                    maxturn -= 5
+                    maxturn -= 10
                 if keyboard.is_pressed("escape"):
                     keep_running = False
+
+                maxspeed = min(100, max(maxspeed, 0))
+                maxturn = min(90, max(maxturn, 0))
                 uart.MotorSetWheels2(speed, turn)
+
+                print("Dostępne klawisze: esc ← ↓ ↑ → - + [ ]")
                 print("Last packet: [{:.1f}]".format(
                     time.time() - uart.last_rx_time))
                 print("[{:4d}][{:4d}]".format(maxspeed, maxturn))
@@ -156,47 +236,48 @@ def main():
             keep_running = True
             local_arm_pos = None
             arm_seg = 0
-            limits = [(a[0]/b,a[1]/b) for a, b in zip([(0, 270), (0, 0.1), (0, 0.043), (0, 0.079), (2, 360), (-1000, 1000)], [0.1, 0.0001, 0.0001, 0.0001, 0.1, 1.0])]
+            limits = [(a[0]/b, a[1]/b) for a, b in zip([(0, 270), (0, 0.1), (0, 0.043), (0, 0.079), (2, 360), (-1000, 1000)], [0.1, 0.0001, 0.0001, 0.0001, 0.1, 1.0])]
             while(keep_running):
 
                 if not local_arm_pos:
                     if uart.old_arm_pos:
-                        local_arm_pos=uart.old_arm_pos
+                        local_arm_pos = uart.old_arm_pos
                     else:
-                        print("no sync")
+                        print("brak synchronizacji - esc aby wyjść")
                 else:
                     if keyboard.is_pressed("right"):
-                        arm_seg +=1
+                        arm_seg += 1
                     if keyboard.is_pressed("left"):
-                        arm_seg -=1
+                        arm_seg -= 1
                     if keyboard.is_pressed("up"):
-                        local_arm_pos[arm_seg]+=5
+                        local_arm_pos[arm_seg] += 5
                     if keyboard.is_pressed("down"):
-                        local_arm_pos[arm_seg]-=5
-                    arm_seg=max(0,min(arm_seg,5))
-                   
-                    print("Last packet: [{:.1f}]".format(
+                        local_arm_pos[arm_seg] -= 5
+                    arm_seg = max(0, min(arm_seg, 5))
+                    print("Dostępne klawisze: esc ←↓↑→")
+                    print("Ostatnia ramka: [{:.1f}]".format(
                         time.time() - uart.last_rx_time))
                     print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]".format(*uart.old_arm_pos))
-                    selected=""
-                    for i in range(0,6):
-                        selected+=" ---- " if i==arm_seg else "      "
+                    selected = ""
+                    for i in range(0, 6):
+                        selected += " ---- " if i == arm_seg else "      "
                     print(selected)
-                    print (local_arm_pos)
-                    local_arm_pos = [min(a[1], max(b, a[0])) for a,b in zip(limits,local_arm_pos)]
-                    print (local_arm_pos)
+                    print(local_arm_pos)
+                    local_arm_pos = [min(a[1], max(b, a[0])) for a, b in zip(limits, local_arm_pos)]
+                    print(local_arm_pos)
                     uart.ArmSetPos(local_arm_pos)
 
                 if keyboard.is_pressed("escape"):
                     keep_running = False
                 # print("[{:4d}][{:4d}]".format(maxspeed, maxturn))
                 # print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]".format(speed, turn))
-                
+
                 time.sleep(0.1 - ((time.time() - starttime) % 0.1))
                 clear()
         else:
             uart.stop()
             sys.exit()
+
 
 if __name__ == '__main__':
     try:
