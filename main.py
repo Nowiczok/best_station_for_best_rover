@@ -195,6 +195,8 @@ def main():
 
         elif(menu_entry_index == 1):
             keep_running = True
+            maxspeed = 30
+            maxturn = 30
             while(keep_running):
                 speed = 0
                 turn = 0
@@ -254,7 +256,7 @@ def main():
                     if keyboard.is_pressed("down"):
                         local_arm_pos[arm_seg] -= 5
                     arm_seg = max(0, min(arm_seg, 5))
-                    print("Dostępne klawisze: esc ←↓↑→")
+                    print("Dostępne klawisze: esc ← ↓ ↑ →")
                     print("Ostatnia ramka: [{:.1f}]".format(
                         time.time() - uart.last_rx_time))
                     print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]".format(*uart.old_arm_pos))
