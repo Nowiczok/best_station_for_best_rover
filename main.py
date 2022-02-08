@@ -51,7 +51,7 @@ def main():
             menu_entry_index = terminal_menu.show()
             return menu_entry_index
         else:
-            menu = SelectionMenu(options, title)
+            menu = SelectionMenu(options, title, show_exit_option=False)
             menu.show()
             menu.join()
             return menu.selected_option
