@@ -268,6 +268,8 @@ class Uart:
     #########################################################
     # warstwa komunikacyjna - ramki protokolu 433/WiFi/Auto
 
+    old_arm_pos = None
+
     def CommonResetAll(self):
         self._generate(0x00)
 
@@ -453,12 +455,20 @@ class Uart:
     #########################################################
     #               generacja i dekodowanie ramek
 
+    def handle_arm(self,args):
+        converted_positions = []
+        for i, item in enumerate(args):
+            if not i % 2:
+                converted_positions.append(args[i]*256+args[i+1])
+        self.old_arm_pos=converted_positions
+
     def parse(self, s):  # jako argument string z pojedyncza ramka
         result = self.decode(s)
         s = ""
         if result != None:
             cmd, args = result
-
+            if cmd == 0x5F:
+                self.handle_arm(args)
             if cmd not in self.RX_FRAMES_FILTER:
                 for i in args:
                     if self.PRINT_HEX:
