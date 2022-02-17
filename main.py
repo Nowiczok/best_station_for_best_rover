@@ -113,7 +113,7 @@ def main():
     maxturn = 30
 
     while True:
-        options = ["AutoTest", "Manualna Jazda", "Test Manipulatora"]+['Wyjdź']
+        options = ["AutoTest", "Manualna Jazda", "Stary Manipulator", "Nowy Manipulator"]+['Wyjdź']
         menu_entry_index = show_menu(title, options)
         if(menu_entry_index == 0):
             keep_running = True
@@ -157,7 +157,7 @@ def main():
             time.sleep(2)
 
             keep_running = True
-            action_length = 40
+            action_length = 20
 
             while(keep_running):
                 for i in range(action_length):
@@ -239,6 +239,7 @@ def main():
             local_arm_pos = None
             arm_seg = 0
             limits = [(a[0]/b, a[1]/b) for a, b in zip([(0, 270), (0, 0.1), (0, 0.043), (0, 0.079), (2, 360), (-1000, 1000)], [0.1, 0.0001, 0.0001, 0.0001, 0.1, 1.0])]
+            keybinds = [('1', 'q'), ('2', 'w'), ('3', 'e'), ('4', 'r'), ('5', 't'), ('6', 'y')]
             while(keep_running):
 
                 if not local_arm_pos:
@@ -247,6 +248,11 @@ def main():
                     else:
                         print("brak synchronizacji - esc aby wyjść")
                 else:
+                    for i, key in enumerate(keybinds):
+                        if keyboard.is_pressed(key[0]):
+                            local_arm_pos[i] += 5
+                        if keyboard.is_pressed(key[1]):
+                            local_arm_pos[i] -= 5
                     if keyboard.is_pressed("right"):
                         arm_seg += 1
                     if keyboard.is_pressed("left"):
@@ -273,6 +279,60 @@ def main():
                     keep_running = False
                 # print("[{:4d}][{:4d}]".format(maxspeed, maxturn))
                 # print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]".format(speed, turn))
+
+                time.sleep(0.1 - ((time.time() - starttime) % 0.1))
+                clear()
+        elif(menu_entry_index == 3):
+            keep_running = True
+            arm_seg = 0
+            max_torque = 20
+            max_speed = 20
+            keybinds = [('1', 'q'), ('2', 'w'), ('3', 'e'), ('4', 'r'), ('5', 't'), ('6', 'y')]
+            while(keep_running):
+                local_arm_pos = [0, 0, 0, 0, 0, 0]
+                for i, key in enumerate(keybinds):
+                    if keyboard.is_pressed(key[0]):
+                        local_arm_pos[i] = max_speed
+                    if keyboard.is_pressed(key[1]):
+                        local_arm_pos[i] = -max_speed
+
+                if keyboard.is_pressed("right"):
+                    arm_seg += 1
+                if keyboard.is_pressed("left"):
+                    arm_seg -= 1
+                if keyboard.is_pressed("up"):
+                    local_arm_pos[arm_seg] = max_speed
+                if keyboard.is_pressed("down"):
+                    local_arm_pos[arm_seg] = -max_speed
+                if keyboard.is_pressed("="):  # +
+                    max_speed += 5
+                if (platform == "win32"):
+                    if keyboard.is_pressed("-"):
+                        max_speed -= 5
+                else:
+                    if keyboard.is_pressed("minus"):
+                        max_speed -= 5
+                if keyboard.is_pressed("]"):
+                    max_torque += 5
+                if keyboard.is_pressed("["):
+                    max_torque -= 5
+                max_speed = min(100, max(max_speed, 0))
+                max_torque = min(100, max(max_torque, 0))
+                arm_seg = max(0, min(arm_seg, 5))
+                print("Dostępne klawisze: esc ← ↓ ↑ → - +")
+                print("Ostatnia ramka: [{:.1f}]".format(
+                    time.time() - uart.last_rx_time))
+                print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]SPEED[{:4d}]TORQUE[{:4d}]".format(*local_arm_pos, max_speed, max_torque))
+                selected = ""
+                for i in range(0, 6):
+                    selected += " ---- " if i == arm_seg else "      "
+                print(selected)
+                uart.NewArmSetVel([*[10*pos for pos in local_arm_pos], max_torque])
+
+                if keyboard.is_pressed("escape"):
+                    local_arm_pos = [0, 0, 0, 0, 0, 0]
+                    uart.NewArmSetVel([*local_arm_pos, max_torque])
+                    keep_running = False
 
                 time.sleep(0.1 - ((time.time() - starttime) % 0.1))
                 clear()

@@ -3,3 +3,6 @@ __pycache__/
 latest.log
 virtualcom0
 *.pyc
+build/
+*.spec
+main

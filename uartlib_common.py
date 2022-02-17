@@ -370,6 +370,16 @@ class Uart:
     def ArmGetVoltageRequest(self):
         self._generate(0x53)
 
+    def NewArmSetVel(self, values):
+        data = []
+        for i in range(6):
+            data.append((values[i] & 0xFFFF) >> 8)
+            data.append(values[i] & 0xFF)
+
+        data.append((values[6] & 0xFF))
+
+        self._generate(0x50, data)
+
     def LidarSetSpeed(self, speed):
         data = [(speed & 0xFFFF) >> 8, speed & 0xFF]
         self._generate(0x60, data)
@@ -455,12 +465,12 @@ class Uart:
     #########################################################
     #               generacja i dekodowanie ramek
 
-    def handle_arm(self,args):
+    def handle_arm(self, args):
         converted_positions = []
         for i, item in enumerate(args):
             if not i % 2:
                 converted_positions.append(args[i]*256+args[i+1])
-        self.old_arm_pos=converted_positions
+        self.old_arm_pos = converted_positions
 
     def parse(self, s):  # jako argument string z pojedyncza ramka
         result = self.decode(s)
