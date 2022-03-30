@@ -378,7 +378,7 @@ class Uart:
 
         data.append((values[6] & 0xFF))
 
-        self._generate(0x50, data)
+        self._generate(0xE1, data)
 
     def LidarSetSpeed(self, speed):
         data = [(speed & 0xFFFF) >> 8, speed & 0xFF]
