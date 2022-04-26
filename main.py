@@ -56,6 +56,56 @@ def main():
             menu.join()
             return menu.selected_option
 
+    def values_changer(callback, args, limits):
+        keep_running = True
+        arm_seg = 0
+        max_speed = 10
+        length = args
+        limits = [limits]*args
+        local_arm_pos = [0]*length
+        while(keep_running):
+
+            if keyboard.is_pressed("right"):
+                arm_seg += 1
+            if keyboard.is_pressed("left"):
+                arm_seg -= 1
+            if keyboard.is_pressed("up"):
+                local_arm_pos[arm_seg] += max_speed
+            if keyboard.is_pressed("down"):
+                local_arm_pos[arm_seg] += -max_speed
+            if keyboard.is_pressed("="):  # +
+                max_speed += 5
+            if (platform == "win32"):
+                if keyboard.is_pressed("-"):
+                    max_speed -= 5
+            else:
+                if keyboard.is_pressed("minus"):
+                    max_speed -= 5
+
+            local_arm_pos = [min(a[1], max(b, a[0])) for a, b in zip(limits, local_arm_pos)]
+
+            max_speed = min(100, max(max_speed, 0))
+            arm_seg = max(0, min(arm_seg, length-1))
+            print("Dostępne klawisze: esc ← ↓ ↑ → - +")
+            print("Ostatnia ramka: [{:.1f}]".format(
+                time.time() - uart.last_rx_time))
+            cool_string = ""
+            for i in range(0, length):
+                cool_string += "[{:4d}]".format(local_arm_pos[i])
+            cool_string += "SPEED[{:4d}]".format(max_speed)
+            print(cool_string)
+            selected = ""
+            for i in range(0, length):
+                selected += " ---- " if i == arm_seg else "      "
+            print(selected)
+            callback(1, 0xFF, local_arm_pos)
+
+            if keyboard.is_pressed("escape"):
+                keep_running = False
+
+            time.sleep(0.1 - ((time.time() - starttime) % 0.1))
+            clear()
+
     parser = argparse.ArgumentParser(description='Cli Kalman operation software.')
     parser.add_argument('--port', help='Specify port')
 
@@ -113,7 +163,7 @@ def main():
     maxturn = 30
 
     while True:
-        options = ["AutoTest", "Manualna Jazda", "Stary Manipulator", "Nowy Manipulator"]+['Wyjdź']
+        options = ["AutoTest", "Manualna Jazda", "Stary Manipulator", "Nowy Manipulator", "Sajens"]+['Wyjdź']
         menu_entry_index = show_menu(title, options)
         if(menu_entry_index == 0):
             keep_running = True
@@ -336,6 +386,34 @@ def main():
 
                 time.sleep(0.1 - ((time.time() - starttime) % 0.1))
                 clear()
+        elif(menu_entry_index == 4):
+            while True:
+                science_options = ["UNIVERSAL_SET_BRIDGE", "UNIVERSAL_SET_SERVO", "UNIVERSAL_SET_PWM",
+                                   "UNIVERSAL_GET_WEIGHT_REQUEST", "SCIENCE_GET_SAMPLES_REQUEST", "SCIENCE_GET_WEIGHT_REQUEST", "SCIENCE_GET_ATMOSPHERE_REQUEST"]+['Wyjdź']
+                frames_ids = [0x70, 0x71, 0x72, 0x74, 0xA0, 0xA1, 0xA2]
+                frames_funcs = [uart.UniversalSetBridge, uart.UniversalSetServo, uart.UniversalSetPwm,
+                                uart.UniversalGetWeightRequest, uart.ScienceGetSamplesRequest, uart.ScienceGetWeightRequest, uart.ScienceGetAtmosphereRequest]
+                frames_args = [2, 4, 6, 1, 1, 1, 1]
+                limits = [(-1000, 1000), (0, 100), (0, 100)]
+                science_entry_index = show_menu(title, science_options)
+
+                if(science_entry_index in [0, 1, 2]):
+                    values_changer(frames_funcs[science_entry_index], frames_args[science_entry_index], limits[science_entry_index])
+                if(science_entry_index in [3, 4, 5, 6]):
+                    frames_funcs[science_entry_index](1)
+                    while True:
+                        if len(uart.science) != 0:
+                            print(uart.science.pop())
+                            input()
+                            break
+                        if keyboard.is_pressed("escape"):
+                            break
+
+                        time.sleep(0.1 - ((time.time() - starttime) % 0.1))
+
+                else:
+                    break
+
         else:
             uart.stop()
             sys.exit()

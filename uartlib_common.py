@@ -40,6 +40,8 @@ class Uart:
 
     RX_FRAMES_FILTER = (0x5F,)
 
+    science = []
+
     #########################################################
     #      warstwa komunikacyjna - ramki na magistrali
 
@@ -479,6 +481,8 @@ class Uart:
             cmd, args = result
             if cmd == 0x5F:
                 self.handle_arm(args)
+            if cmd in [0x8F, 0xAD, 0xAE, 0xAF]:
+                self.science.append((cmd, args))
             if cmd not in self.RX_FRAMES_FILTER:
                 for i in args:
                     if self.PRINT_HEX:
