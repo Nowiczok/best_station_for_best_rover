@@ -439,6 +439,15 @@ class Uart:
     def CustomToRf(self, args=[]):
         self._generate(0x81, args)
 
+    def MuxSetCam(self, id, camera):
+        self.generate(0xB1, [id, camera])
+
+    def MuxSetChannel(self, id, channel):
+        self.generate(0xB2, [id, channel])
+
+    def MuxSetPower(self, id, power):
+        self.generate(0xB3, [id, power])
+
     # na potrzeby testow, niespecjalnie istotne
 
     def pidrequest(self, s):

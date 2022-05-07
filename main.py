@@ -163,7 +163,7 @@ def main():
     maxturn = 30
 
     while True:
-        options = ["AutoTest", "Manualna Jazda", "Stary Manipulator", "Nowy Manipulator", "Sajens"]+['Wyjdź']
+        options = ["AutoTest", "Manualna Jazda", "Stary Manipulator", "Nowy Manipulator", "Sajens", "VMUX"]+['Wyjdź']
         menu_entry_index = show_menu(title, options)
         if(menu_entry_index == 0):
             keep_running = True
@@ -405,7 +405,7 @@ def main():
 
                 if(science_entry_index in [0, 1, 2, 3]):
                     values_changer(frames_funcs[science_entry_index], frames_args[science_entry_index], limits[science_entry_index])
-                if(science_entry_index in [4, 5, 6, 7]):
+                elif(science_entry_index in [4, 5, 6, 7]):
                     frames_funcs[science_entry_index](1)
                     while True:
                         if len(uart.science) != 0:
@@ -419,7 +419,22 @@ def main():
 
                 else:
                     break
-
+        elif(menu_entry_index == 5):
+            while True:
+                vmux_options = ["MUX_SET_CAM", "MUX_SET_CHANNEL", "MUX_SET_POWER"]+['Wyjdź']
+                vmux_entry_index = show_menu(title, vmux_options)
+                vtx_options = [1, 2]
+                vtx_entry_index = show_menu(vmux_options[vmux_entry_index], map(str, vtx_options))
+                mux_options = [[1, 2, 3, 4, 5, 6, 7, 8], [x for x in range(1, 41)], [0, 1, 2, 3, 4]]
+                mux_entry_index = show_menu(vmux_options[vmux_entry_index], map(str, mux_options[vmux_entry_index]))
+                if vmux_entry_index == 0:
+                    uart.MuxSetCam(vtx_options[vtx_entry_index], mux_options[vmux_entry_index][mux_entry_index])
+                elif vmux_entry_index == 1:
+                    uart.MuxSetChannel(vtx_options[vtx_entry_index], mux_options[vmux_entry_index][mux_entry_index])
+                elif vmux_entry_index == 2:
+                    uart.MuxSetPower(vtx_options[vtx_entry_index], mux_options[vmux_entry_index][mux_entry_index])
+                else:
+                    break
         else:
             uart.stop()
             sys.exit()
