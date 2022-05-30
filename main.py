@@ -340,6 +340,7 @@ def main():
             keybinds = [('1', 'q'), ('2', 'w'), ('3', 'e'), ('4', 'r'), ('5', 't'), ('6', 'y')]
             while(keep_running):
                 local_arm_pos = [0, 0, 0, 0, 0, 0]
+                local_gripper_position = 0
                 for i, key in enumerate(keybinds):
                     if keyboard.is_pressed(key[0]):
                         local_arm_pos[i] = max_speed
@@ -356,6 +357,13 @@ def main():
                     local_arm_pos[arm_seg] = -max_speed
                 if keyboard.is_pressed("="):  # +
                     max_speed += 5
+
+                # gripper
+                if keyboard.is_pressed("i"):
+                    local_gripper_position += 1
+                if keyboard.is_pressed("k"):
+                    local_gripper_position -= 1
+
                 if (platform == "win32"):
                     if keyboard.is_pressed("-"):
                         max_speed -= 5
@@ -372,15 +380,25 @@ def main():
                 print("Dostępne klawisze: esc ← ↓ ↑ → - +")
                 print("Ostatnia ramka: [{:.1f}]".format(
                     time.time() - uart.last_rx_time))
-                print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]SPEED[{:4d}]TORQUE[{:4d}]".format(*local_arm_pos, max_speed, max_torque))
+                print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]SPEED[{:4d}]TORQUE[{:4d}]|GRIPPER[{:4d}]".format(
+                        *local_arm_pos, 
+                        max_speed, 
+                        max_torque, 
+                        local_gripper_position
+                    )
+                )
                 selected = ""
                 for i in range(0, 6):
                     selected += " ---- " if i == arm_seg else "      "
                 print(selected)
                 uart.NewArmSetVel([*[10*pos for pos in local_arm_pos], max_torque])
 
+                local_gripper_position = min(20, local_gripper_position)
+                uart.NewArmSetGripper(min(23 * local_gripper_position, 445))
+
                 if keyboard.is_pressed("escape"):
                     local_arm_pos = [0, 0, 0, 0, 0, 0]
+                    local_gripper_position = 0
                     uart.NewArmSetVel([*local_arm_pos, max_torque])
                     keep_running = False
 

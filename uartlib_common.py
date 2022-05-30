@@ -382,6 +382,14 @@ class Uart:
 
         self._generate(0xE1, data)
 
+    def NewArmSetGripper(self, value):
+        data = []
+
+        data.append((value & 0xFFFF) >> 8)
+        data.append(value & 0xFF)
+
+        self._generate(0xE2, data)
+
     def LidarSetSpeed(self, speed):
         data = [(speed & 0xFFFF) >> 8, speed & 0xFF]
         self._generate(0x60, data)
