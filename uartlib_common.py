@@ -40,6 +40,8 @@ class Uart:
 
     RX_FRAMES_FILTER = (0x5F,)
 
+    science = []
+
     #########################################################
     #      warstwa komunikacyjna - ramki na magistrali
 
@@ -378,7 +380,7 @@ class Uart:
 
         data.append((values[6] & 0xFF))
 
-        self._generate(0x50, data)
+        self._generate(0xE1, data)
 
     def LidarSetSpeed(self, speed):
         data = [(speed & 0xFFFF) >> 8, speed & 0xFF]
@@ -437,6 +439,15 @@ class Uart:
     def CustomToRf(self, args=[]):
         self._generate(0x81, args)
 
+    def MuxSetCam(self, id, camera):
+        self._generate(0xB1, [id, camera])
+
+    def MuxSetChannel(self, id, channel):
+        self._generate(0xB2, [id, channel])
+
+    def MuxSetPower(self, id, power):
+        self._generate(0xB3, [id, power])
+
     # na potrzeby testow, niespecjalnie istotne
 
     def pidrequest(self, s):
@@ -479,6 +490,8 @@ class Uart:
             cmd, args = result
             if cmd == 0x5F:
                 self.handle_arm(args)
+            if cmd in [0x8F, 0xAD, 0xAE, 0xAF]:
+                self.science.append((cmd, args))
             if cmd not in self.RX_FRAMES_FILTER:
                 for i in args:
                     if self.PRINT_HEX:
