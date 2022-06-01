@@ -25,7 +25,7 @@ class Uart:
         self.PRINT_TX = PRINT_TX
         self.PRINT_RX = PRINT_RX
 
-    BAUDRATE = 115200
+    BAUDRATE = 38400
     ARGS_COUNT_BYTES = 1  # dlugosc pola ilosci argumentow (1 lub 2 bajty)
     # wylaczanie wysylania danych (samo generowanie i wyswietlanie)
     DISABLE_TX = False
