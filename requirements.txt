@@ -1,3 +1,4 @@
 keyboard
 simple-term-menu
 console-menu
+pyserial
