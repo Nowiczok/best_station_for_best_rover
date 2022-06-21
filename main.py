@@ -321,7 +321,7 @@ def main():
                         selected += " ---- " if i == arm_seg else "      "
                     print(selected)
                     print(local_arm_pos)
-                    local_arm_pos = [min(a[1], max(b, a[0])) for a, b in zip(limits, local_arm_pos)]
+                    local_arm_pos = [int(min(a[1], max(b, a[0]))) for a, b in zip(limits, local_arm_pos)]
                     print(local_arm_pos)
                     uart.ArmSetPos(local_arm_pos)
 
@@ -383,11 +383,11 @@ def main():
                 print("Ostatnia ramka: [{:.1f}]".format(
                     time.time() - uart.last_rx_time))
                 print("[{:4d}][{:4d}][{:4d}][{:4d}][{:4d}][{:4d}]SPEED[{:4d}]TORQUE[{:4d}]|GRIPPER[{:4d}]".format(
-                        *local_arm_pos, 
-                        max_speed, 
-                        max_torque, 
-                        local_gripper_position
-                    )
+                    *local_arm_pos,
+                    max_speed,
+                    max_torque,
+                    local_gripper_position
+                )
                 )
                 selected = ""
                 for i in range(0, 6):
