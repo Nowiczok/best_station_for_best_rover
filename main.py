@@ -251,13 +251,13 @@ def main():
                 speed = 0
                 turn = 0
                 if keyboard.is_pressed("up"):
-                    speed = maxspeed
+                    uart.MotorSetWheels4(-maxspeed, -maxspeed, maxspeed, maxspeed)
                 if keyboard.is_pressed("down"):
-                    speed = -maxspeed
+                    uart.MotorSetWheels4(maxspeed, maxspeed, -maxspeed, -maxspeed)
                 if keyboard.is_pressed("right"):
-                    turn = maxturn
+                    uart.MotorSetWheels4(maxspeed, maxspeed, maxspeed, maxspeed)
                 if keyboard.is_pressed("left"):
-                    turn = -maxturn
+                    uart.MotorSetWheels4(-maxspeed, -maxspeed, -maxspeed, -maxspeed)
                 if keyboard.is_pressed("="):  # +
                     maxspeed += 5
                 if (platform == "win32"):
@@ -275,7 +275,7 @@ def main():
 
                 maxspeed = min(100, max(maxspeed, 0))
                 maxturn = min(90, max(maxturn, 0))
-                uart.MotorSetWheels2(speed, turn)
+                
 
                 print("Dostępne klawisze: esc ← ↓ ↑ → - + [ ]")
                 print("Last packet: [{:.1f}]".format(
