@@ -337,7 +337,7 @@ def main():
             arm_seg = 0
             max_torque = 20
             max_speed = 20
-            local_gripper_position = 0
+            local_gripper_position = 10
             keybinds = [('1', 'q'), ('2', 'w'), ('3', 'e'), ('4', 'r'), ('5', 't'), ('6', 'y')]
             while(keep_running):
                 local_arm_pos = [0, 0, 0, 0, 0, 0]
@@ -376,7 +376,7 @@ def main():
                     max_torque -= 5
                 max_speed = min(100, max(max_speed, 0))
                 max_torque = min(100, max(max_torque, 0))
-                local_gripper_position = min(20, local_gripper_position)
+                local_gripper_position = min(50, local_gripper_position)
                 local_gripper_position = max(0, local_gripper_position)
                 arm_seg = max(0, min(arm_seg, 5))
                 print("Dostępne klawisze: esc ← ↓ ↑ → - +")
@@ -395,7 +395,7 @@ def main():
                 print(selected)
                 uart.NewArmSetVel([*[10*pos for pos in local_arm_pos], max_torque])
 
-                uart.NewArmSetGripper(min(23 * local_gripper_position, 445))
+                uart.NewArmSetGripper(23 * local_gripper_position)
 
                 if keyboard.is_pressed("escape"):
                     local_arm_pos = [0, 0, 0, 0, 0, 0]
