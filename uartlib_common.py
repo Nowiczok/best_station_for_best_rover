@@ -329,6 +329,20 @@ class Uart:
         for i in pos:
             data.append(i & 0xFF)
         self._generate(0x40, data)
+    
+    def MotorSetWheels4(self, wheel0, wheel1, wheel2, wheel3):
+        data = []
+        pos = 0
+        data.append((wheel0) & 0xFF)
+        data.append((wheel1) & 0xFF)
+        data.append((wheel2) & 0xFF)
+        data.append((wheel3) & 0xFF)
+        data.append((pos) & 0xFF)
+        data.append((pos) & 0xFF)
+        data.append((pos) & 0xFF)
+        data.append((pos) & 0xFF)
+        self._generate(0x40, data)
+
 
     def MotorSetWheels2(self, speed, pos):
         data = []
